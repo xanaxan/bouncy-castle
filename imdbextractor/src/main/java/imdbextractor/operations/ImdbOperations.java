@@ -8,6 +8,8 @@ import java.net.MalformedURLException;
 import java.util.List;
 import java.util.logging.Logger;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.DomNodeList;
@@ -27,46 +29,47 @@ public class ImdbOperations {
 
 	static ImdbData imdbData = new ImdbData();
 
+	@SuppressWarnings("unchecked")
 	public static HtmlPage searchMovie(DirectoryData directoryData, WebClient webClient) throws FailingHttpStatusCodeException, 
 																					MalformedURLException, IOException {
-		String url = "http://www.imdb.com/find?q=" + directoryData.getName()
-				+ "&s=tt&ttype=ft&exact=true";
+		String url = "http://www.imdb.com/find?q=" + directoryData.getName() + "&s=tt&ttype=ft&exact=true";
 		HtmlPage searchPage = webClient.getPage(url);
 
-		if (searchPage.getByXPath("//td[@class='result_text']").isEmpty()) {
-			String urlNotExact = "http://www.imdb.com/find?q=" + directoryData.getName()
-					+ "&s=tt&ttype=ft";
+		List<Object> listResult = (List<Object>) searchPage.getByXPath("//td[@class='result_text']");
+		if (listResult.isEmpty()) {
+			String urlNotExact = "http://www.imdb.com/find?q=" + directoryData.getName() + "&s=tt&ttype=ft";
 			searchPage = webClient.getPage(urlNotExact);
-			if (searchPage.getByXPath("//td[@class='result_text']").isEmpty()) {
+			listResult = (List<Object>) searchPage.getByXPath("//td[@class='result_text']");
+			if (listResult.isEmpty()) {
 				logger.severe("Search Failed");
 				return null;
 			}
 		}
-		
-		@SuppressWarnings("unchecked")
-		List<Object> listResult = (List<Object>) searchPage.getByXPath("//td[@class='result_text']");
-		if (listResult.isEmpty()) {
-			return null;
-		}
 		int i = 1;
 		HtmlAnchor a = null;
 		HtmlAnchor aToKeep = null;
-		for (Object o : searchPage.getByXPath("//td[@class='result_text']")) {
+		for (Object o : listResult) {
 			HtmlTableDataCell tdResult = (HtmlTableDataCell) o;
 			a = (HtmlAnchor) tdResult.getFirstElementChild();
 			String yearInSearchResult = a.getNextSibling().asText();
-			yearInSearchResult = yearInSearchResult.substring(yearInSearchResult.length() - 5,
-					yearInSearchResult.length() - 1);
+			if (StringUtils.isNotBlank(yearInSearchResult) && yearInSearchResult.length() > 5) {
+				yearInSearchResult = yearInSearchResult.substring(yearInSearchResult.length() - 5, yearInSearchResult.length() - 1);
+			}
 			//TODO WARNUNG wenn mehr als 1 film mit demselben jahr (und namen) oder
 //			 wenn kein jahr im directory/file angegeben
 			if (directoryData.getYear() != null && directoryData.getYear() != null && !directoryData.getYear().equals(yearInSearchResult)) {
 				Integer year1 = Integer.valueOf(directoryData.getYear());
-				Integer year2 = Integer.valueOf(yearInSearchResult);
+				Integer year2 = 0;
+				try {
+					year2 = Integer.valueOf(yearInSearchResult);
+				} catch (NumberFormatException nfe) {
+					// e.g. (in development), no year
+				}
 				if ((year1 > year2 && year1 - year2 < 2) ||
 						(year2 > year1 && year2 - year1 < 2)) {
 					aToKeep = a;
 				}
-				if (i++ > 3) {
+				if (i++ > 5) {
 					if (aToKeep != null) {
 						logger.severe(directoryData.getName() + ": Years don't match! Falling back to nearest possible Result. File/Directory Year: " + directoryData.getYear() +
 								" Imdb Search Result Year: " + yearInSearchResult);
@@ -79,7 +82,11 @@ public class ImdbOperations {
 			}
 			return a.click();
 		}
-		return aToKeep.click();
+		if (aToKeep != null) {
+			return aToKeep.click();
+		} else {
+			return null;
+		}
 	}
 	
 	public static ImdbData extractDataFromImdb(HtmlPage moviePage) throws Exception {
