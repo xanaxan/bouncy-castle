@@ -5,16 +5,23 @@ import imdbextractor.data.DirectoryData;
 import imdbextractor.data.ImdbData;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 public class ExcelOperations {
@@ -36,7 +43,7 @@ public class ExcelOperations {
 			dataRow = sheet.createRow(sheet.getLastRowNum() + 1);
 			dataRow.createCell(ExcelRows.Title.ordinal()).setCellValue(data.getMovieName());
 			dataRow.createCell(ExcelRows.YearReleased.ordinal()).setCellValue(data.getReleaseYear());
-			dataRow.createCell(ExcelRows.Rating.ordinal()).setCellValue(data.getImdbRating());
+			dataRow.createCell(ExcelRows.Rating.ordinal(), Cell.CELL_TYPE_STRING).setCellValue(data.getImdbRating());
 			dataRow.createCell(ExcelRows.Genre.ordinal()).setCellValue(listToString(data.getGenres()));
 			dataRow.createCell(ExcelRows.Description.ordinal()).setCellValue(data.getShortDescription());
 			dataRow.createCell(ExcelRows.Imdb.ordinal()).setCellValue(data.getImdbUrl());
@@ -47,7 +54,7 @@ public class ExcelOperations {
 			dataRow.createCell(ExcelRows.Duration.ordinal()).setCellValue(data.getDuration());
 			dataRow.createCell(ExcelRows.Format.ordinal()).setCellValue(data.getDirectoryData().getResolution());
 			dataRow.createCell(ExcelRows.Status.ordinal()).setCellValue(status);
-			dataRow.createCell(ExcelRows.SaveLocation.ordinal()).setCellValue(saveLocation);
+			dataRow.createCell(ExcelRows.SaveLocation.ordinal()).setCellValue(saveLocation != null ? saveLocation : data.getDirectoryData().getSaveLocation());
 			dataRow.createCell(ExcelRows.Metascore.ordinal()).setCellValue(data.getMetascore());
 			dataRow.createCell(ExcelRows.Added.ordinal()).setCellValue(data.getDirectoryData().getLastModified() != null ? 
 					data.getDirectoryData().getLastModified() : new SimpleDateFormat("dd.MM.yyyy").format(new Date()));
@@ -60,7 +67,7 @@ public class ExcelOperations {
 				dataRow.createCell(ExcelRows.SearchNameDate.ordinal()).setCellValue(searchNameDate.replace("%20", " "));
 			}
 		}
-		String filename = "D:\\alex\\programming\\tmp\\workbook" + new Date().getTime();
+		String filename = "c:\\tmp\\workbook" + new Date().getTime();
 		if (directoryWithMovies != null) {
 			filename += "_" + FileOperations.fetchVolumeName(directoryWithMovies);
 			String dir = directoryWithMovies.getName();
@@ -74,7 +81,7 @@ public class ExcelOperations {
 	}
 	
 	public static void makeExcelForFailed(List<DirectoryData> failed) throws IOException {
-		Workbook wb = new XSSFWorkbook();
+		Workbook wb = new HSSFWorkbook();
 		Sheet sheet = wb.createSheet("failed sheet");
 		Row headerRow = sheet.createRow(0);
 		headerRow.createCell(0).setCellValue("Directory/Filename");
@@ -91,7 +98,7 @@ public class ExcelOperations {
 			row.createCell(0).setCellValue(directoryData.getFileDirectory().getName());
 			row.createCell(1).setCellValue(directoryData.getYear());
 			row.createCell(2).setCellValue(directoryData.getResolution());
-			row.createCell(3).setCellValue(directoryData.getLastModified());
+			row.createCell(3, Cell.CELL_TYPE_STRING).setCellValue(directoryData.getLastModified());
 			row.createCell(4).setCellValue(FileOperations.fetchVolumeName(directoryData.getFileDirectory()));
 			i++;
 		}
@@ -99,9 +106,37 @@ public class ExcelOperations {
 		while (it.hasNext()) {
 			sheet.autoSizeColumn(it.next().getRowNum());
 		}
-		FileOutputStream fileOut = new FileOutputStream("D:\\alex\\programming\\tmp\\Failed.xlsx");
+		FileOutputStream fileOut = new FileOutputStream("c:\\tmp\\Failed.xls");
 		wb.write(fileOut);
 		fileOut.close();
+	}
+	
+	public static List<DirectoryData> readFailedExcel(String pathToFile) throws InvalidFormatException, IOException {
+		InputStream inp = new FileInputStream(new File(pathToFile));
+		Workbook wb = WorkbookFactory.create(inp);
+		Sheet sheet = wb.getSheetAt(0);
+		Iterator<Row> it = sheet.rowIterator();
+		
+		List<DirectoryData> entryList = new ArrayList<DirectoryData>();
+		DirectoryData data = null;
+		it.next();
+		while (it.hasNext()) {
+			Row row = it.next();
+			data = new DirectoryData();
+			if (row.getCell(2) != null) {
+				data.setResolution(row.getCell(2).getStringCellValue());
+			}
+			if (row.getCell(2) != null) {
+			data.setLastModified(row.getCell(3).toString());
+			}
+			if (row.getCell(2) != null) {
+			data.setSaveLocation(row.getCell(4).getStringCellValue());
+			}
+			data.setName(row.getCell(5).getStringCellValue());
+			entryList.add(data);
+		}
+		
+		return entryList;
 	}
 	
 	private static String listToString(List<String> list) {

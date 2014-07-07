@@ -42,7 +42,7 @@ public class Main_MovieDirectory {
 		for (File f : directoryWithMovies.listFiles()) {
 			String dirFileName = f.getName();
 			if (f.isFile()) {
-				if (!(f.getName().endsWith(".mkv") || f.getName().endsWith(".avi") || f.getName().endsWith(".mp4"))) {
+				if (!(f.getName().endsWith(".mkv") || f.getName().endsWith(".avi") || f.getName().endsWith(".mp4") || f.getName().endsWith(".divx"))) {
 					continue;
 				}
 				dirFileName = f.getName().substring(0, f.getName().lastIndexOf("."));

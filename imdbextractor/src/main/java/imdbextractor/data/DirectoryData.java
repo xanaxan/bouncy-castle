@@ -7,10 +7,17 @@ public class DirectoryData {
 	private String year;
 	private String resolution;
 	private String lastModified;
+	private String saveLocation;
 	
 	private File fileDirectory;
 	
 	
+	public String getSaveLocation() {
+		return saveLocation;
+	}
+	public void setSaveLocation(String saveLocation) {
+		this.saveLocation = saveLocation;
+	}
 	public File getFileDirectory() {
 		return fileDirectory;
 	}
