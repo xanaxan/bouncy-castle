@@ -1,5 +1,6 @@
 package imdbextractor.main;
 
+import imdbextractor.data.DirectoryData;
 import imdbextractor.data.ImdbData;
 import imdbextractor.operations.ExcelOperations;
 import imdbextractor.operations.FileOperations;
@@ -23,28 +24,43 @@ public class Main_UrlList {
 	static List<ImdbData> imdbDataList = new ArrayList<ImdbData>();
 
 	public static void main(String[] args) throws Exception {
-		String file = FileOperations.fileChooser();	
-		FileInputStream fis = new FileInputStream(file);
-		BufferedReader br = new BufferedReader(new InputStreamReader(fis));
-	 
-		String line = null;
+		String pathToFile = FileOperations.fileChooser();
 		WebClient webClient = new WebClient();
 		webClient.getOptions().setJavaScriptEnabled(false);
-		while ((line = br.readLine()) != null) {
-			System.out.println(line);
-			HtmlPage page = webClient.getPage(line);
-			ImdbData imdbData = ImdbOperations.extractDataFromImdb(page);
-			if (imdbData == null) {
-				System.out.println("FAILURE: " + line);
-				continue;
+		if (pathToFile.endsWith(".xls")) {		
+			List<DirectoryData> failedList = ExcelOperations.readFailedExcel(pathToFile);
+			
+			for (DirectoryData dirData : failedList) {
+				HtmlPage page = webClient.getPage(dirData.getName());
+				ImdbData imdbData = ImdbOperations.extractDataFromImdb(page);
+				if (imdbData == null) {
+					System.out.println("FAILURE: " + dirData.getName());
+					continue;
+				}
+				imdbData.setDirectoryData(dirData);
+				imdbDataList.add(imdbData);
 			}
-			imdbDataList.add(imdbData);
-		}	 
-		br.close();
+			
+		} else if (pathToFile.endsWith(".txt")) {
+			FileInputStream fis = new FileInputStream(pathToFile);
+			BufferedReader br = new BufferedReader(new InputStreamReader(fis));
+		 
+			String line = null;
+
+			while ((line = br.readLine()) != null) {
+				System.out.println(line);
+				HtmlPage page = webClient.getPage(line);
+				ImdbData imdbData = ImdbOperations.extractDataFromImdb(page);
+				if (imdbData == null) {
+					System.out.println("FAILURE: " + line);
+					continue;
+				}
+				imdbDataList.add(imdbData);
+			}	 
+			br.close();
+		}
 		webClient.closeAllWindows();
 		ExcelOperations.makeExcel(imdbDataList, null, null, null);
 		System.out.println("Finished!");
-		
-	}
-
+	}	
 }

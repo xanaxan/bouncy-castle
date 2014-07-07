@@ -93,7 +93,7 @@ public class FileOperations {
     }   
 	
 	public static String directoryChooser() {
-        JFileChooser fChooser = new JFileChooser("D:\\alex\\programming");
+        JFileChooser fChooser = new JFileChooser();
         fChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY); 
         fChooser.setDialogTitle("select folder");
         fChooser.setAcceptAllFileFilterUsed(false);

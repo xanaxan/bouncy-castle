@@ -34,7 +34,6 @@ public class ImdbOperations {
 		HtmlPage searchPage = webClient.getPage(url);
 
 		if (searchPage.getByXPath("//td[@class='result_text']").isEmpty()) {
-			logger.warning("Exact Title Search Failed");
 			String urlNotExact = "http://www.imdb.com/find?q=" + directoryData.getName()
 					+ "&s=tt&ttype=ft";
 			searchPage = webClient.getPage(urlNotExact);
