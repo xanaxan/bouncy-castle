@@ -1,0 +1,3 @@
+- selection window for either movie directory or urlList mode
+- progress bar / x of y files done
+- if no fails dont make failed file
