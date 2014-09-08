@@ -20,6 +20,7 @@
 				</configuration>
 			</plugin>
 
+
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
 				<configuration>
@@ -108,5 +109,5 @@
 			<layout>default</layout>
 		</repository>
 	</repositories>
-	
+
 </project>
