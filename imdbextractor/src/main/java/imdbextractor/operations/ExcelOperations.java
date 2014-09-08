@@ -45,7 +45,7 @@ public class ExcelOperations {
 			dataRow = sheet.createRow(sheet.getLastRowNum() + 1);
 			dataRow.createCell(ExcelRows.Title.ordinal()).setCellValue(data.getMovieName());
 			dataRow.createCell(ExcelRows.YearReleased.ordinal()).setCellValue(data.getReleaseYear());
-			dataRow.createCell(ExcelRows.Rating.ordinal(), Cell.CELL_TYPE_STRING).setCellValue(data.getImdbRating());
+			dataRow.createCell(ExcelRows.Rating.ordinal(), Cell.CELL_TYPE_STRING).setCellValue(data.getImdbRating().replace(".", ","));
 			dataRow.createCell(ExcelRows.Genre.ordinal()).setCellValue(listToString(data.getGenres()));
 			dataRow.createCell(ExcelRows.Description.ordinal()).setCellValue(data.getShortDescription());
 			dataRow.createCell(ExcelRows.Imdb.ordinal()).setCellValue(data.getImdbUrl());
@@ -128,11 +128,11 @@ public class ExcelOperations {
 			if (row.getCell(2) != null) {
 				data.setResolution(row.getCell(2).getStringCellValue());
 			}
-			if (row.getCell(2) != null) {
-			data.setLastModified(row.getCell(3).toString());
+			if (row.getCell(3) != null) {
+				data.setLastModified(row.getCell(3).toString());
 			}
-			if (row.getCell(2) != null) {
-			data.setSaveLocation(row.getCell(4).getStringCellValue());
+			if (row.getCell(4) != null) {
+				data.setSaveLocation(row.getCell(4).getStringCellValue());
 			}
 			data.setName(row.getCell(5).getStringCellValue());
 			entryList.add(data);

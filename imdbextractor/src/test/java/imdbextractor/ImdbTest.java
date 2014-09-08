@@ -15,6 +15,7 @@ import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import com.gargoylesoftware.htmlunit.html.HtmlParagraph;
 import com.gargoylesoftware.htmlunit.html.HtmlSpan;
 import com.gargoylesoftware.htmlunit.html.HtmlTableDataCell;
 
@@ -24,13 +25,23 @@ public class ImdbTest {
 	public void testProcessDescriptionAndPersons() throws FailingHttpStatusCodeException, MalformedURLException, IOException {
 		WebClient webClient = new WebClient();
 		webClient.getOptions().setJavaScriptEnabled(false);
-		HtmlPage page = webClient.getPage("http://www.imdb.com/title/tt0234215");
-		HtmlTableDataCell tdOverviewTop = page.getHtmlElementById("overview-top");
+		HtmlPage page = webClient.getPage("http://www.imdb.com/title/tt0085271/");
 
-		for (Object o : tdOverviewTop.getByXPath("//div[@itemprop='actors']//span[@itemprop='name']")) {
-			System.out.println(((HtmlSpan) o).asText());
-			// imdbData.getActors().add(((HtmlSpan) o).asText());
+		HtmlParagraph p = (HtmlParagraph) page.getByXPath("//p[@itemprop='description']").get(0);
+		String description = p.asText();
+		if (description.contains("See full summary")) {
+			System.out.println("hui");
 		}
+
+		// *[@id="titleStoryLine"]/div[1]/p
+		Object o = page.getFirstByXPath("//div[@id='titleStoryLine']/div[1]/p[1]");
+		if (o != null) {
+			// Object oArray[] = (Object[]) o;
+			String plot = ((HtmlParagraph) o).asText();
+			System.out.println(plot);
+			System.out.println(plot.substring(0, plot.indexOf("Written by")));
+		}
+
 	}
 
 	@Test

@@ -1,4 +1,4 @@
-- selection window for either movie directory or urlList mode
-- progress bar / x of y files done
-- if no fails dont make failed file
+- selection window for either movie directory or urlList mode ...DONE
+- progress bar / x of y files ...DONE
+- if no fails dont make failed file ...DONE
 - movie might also be just a 'tv movie'
