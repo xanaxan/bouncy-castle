@@ -6,9 +6,10 @@ import imdbextractor.data.ImdbData;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.List;
-import java.util.logging.Logger;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
 import com.gargoylesoftware.htmlunit.WebClient;
@@ -25,7 +26,7 @@ import com.gargoylesoftware.htmlunit.html.HtmlTableDataCell;
 
 public class ImdbOperations {
 	
-	static Logger logger = Logger.getLogger(ImdbOperations.class.getName());
+	static final Logger logger = LogManager.getLogger(ImdbOperations.class.getName());
 
 	static ImdbData imdbData = new ImdbData();
 
@@ -41,7 +42,7 @@ public class ImdbOperations {
 			searchPage = webClient.getPage(urlNotExact);
 			listResult = (List<Object>) searchPage.getByXPath("//td[@class='result_text']");
 			if (listResult.isEmpty()) {
-				logger.severe("Search Failed");
+				logger.error("Search Failed");
 				return null;
 			}
 		}
@@ -71,7 +72,8 @@ public class ImdbOperations {
 				}
 				if (i++ > 5) {
 					if (aToKeep != null) {
-						logger.severe(directoryData.getName() + ": Years don't match! Falling back to nearest possible Result. File/Directory Year: " + directoryData.getYear() +
+						logger.warn(directoryData.getName() + ": Years don't match! Falling back to nearest possible Result. File/Directory Year: "
+								+ directoryData.getYear() +
 								" Imdb Search Result Year: " + yearInSearchResult);
 						return aToKeep.click();
 					} else {
@@ -100,23 +102,36 @@ public class ImdbOperations {
 		processHeaderData(tdOverviewTop);
 		processInfoBar(tdOverviewTop);
 		processRatingsBox(tdOverviewTop);
-		processDescriptionAndPersons(tdOverviewTop);
+		processDescriptionAndPersons(tdOverviewTop, moviePage);
 		fetchPosterImgLink(moviePage);
 		
 		return imdbData;
 	}
 
-	private static void processDescriptionAndPersons(HtmlTableDataCell tdOverviewTop) {
+	private static void processDescriptionAndPersons(HtmlTableDataCell tdOverviewTop, HtmlPage page) {
 		HtmlParagraph p = (HtmlParagraph) tdOverviewTop.getByXPath("//p[@itemprop='description']").get(0);
-		imdbData.setShortDescription(p.asText());
+		String description = p.asText();
+		if (description.contains("See full summary")) {
+			Object o = page.getFirstByXPath("//div[@id='titleStoryLine']/div[1]/p[1]");
+			if (o != null) {
+				String plot = ((HtmlParagraph) o).asText();
+				if (plot.indexOf("Written by") != -1) {
+					plot = plot.substring(0, plot.indexOf("Written by"));
+				}
+				if (plot.length() > 300) {
+					plot = plot.substring(0, 300);
+				}
+				description = plot + " ...";
+			}
+		}
+		imdbData.setShortDescription(description);
+
 
 		HtmlSpan span = (HtmlSpan) tdOverviewTop.getFirstByXPath("//div[@itemprop='director']//span[@itemprop='name']");
 		if (span != null) {
 			imdbData.setDirector(span.asText());
 		}
 		
-	
-//		TODO Scott Bolger , Kent Murray (story)
 		for (Object o : tdOverviewTop.getByXPath("//div[@itemprop='creator']//span[@itemprop='name']")) {
 			HtmlSpan spanWriter = (HtmlSpan) o;
 			String writer = spanWriter.asText() + " "
@@ -124,9 +139,9 @@ public class ImdbOperations {
 			if (writer.contains(",")) {
 				writer = writer.substring(0, writer.length() - 1);
 			}
-			imdbData.getWriters().add(writer);
+			imdbData.getWriters().add(writer.trim());
 		}
-		//TODO always the same name; also semicolon problem
+
 		for (Object o : tdOverviewTop.getByXPath("//div[@itemprop='actors']//span[@itemprop='name']")) {
 			imdbData.getActors().add(((HtmlSpan) o).asText());
 		}
@@ -135,8 +150,9 @@ public class ImdbOperations {
 	private static void processHeaderData(HtmlTableDataCell tdOverviewTop) {
 		HtmlHeading1 h1 = (HtmlHeading1) tdOverviewTop.getHtmlElementsByTagName("h1").get(0);
 
-		@SuppressWarnings("unchecked")
-		List<HtmlSpan> list = (List<HtmlSpan>) h1.getByXPath("//span[@class='title-extra']");
+		// @SuppressWarnings("unchecked")
+		// List<HtmlSpan> list = (List<HtmlSpan>)
+		// h1.getByXPath("//span[@class='title-extra']");
 //		if (list != null && !list.isEmpty()) {
 //			String orig = list.get(0).asText();
 //			orig = orig.substring(1, orig.length() - 18);
@@ -165,8 +181,8 @@ public class ImdbOperations {
 
 		DomNodeList<HtmlElement> list = divInfobar.getElementsByTagName("time");
 		if (!list.isEmpty()) {
-		String duration = list.get(0).asText();
-		imdbData.setDuration(duration.substring(0, duration.length() - 4));
+			String duration = list.get(0).asText();
+			imdbData.setDuration(duration.substring(0, duration.length() - 4));
 		}
 		for (Object span : divInfobar.getByXPath("//span[@itemprop='genre']")) {
 			imdbData.getGenres().add(((HtmlSpan) span).asText());

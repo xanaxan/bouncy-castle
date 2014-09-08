@@ -6,18 +6,20 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.logging.Logger;
 
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileSystemView;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+
 public class FileOperations {
 	
-	static Logger logger = Logger.getLogger(FileOperations.class.getName());
+	static final Logger logger = LogManager.getLogger(FileOperations.class.getName());
 	
 	public static DirectoryData processDirectoryName(String directoryName) throws Exception {
-		System.out.println();
-		System.out.println("Processing Directory/File: " + directoryName);
+		logger.info("");
+		logger.info("Processing Directory/File: " + directoryName);
 		DirectoryData directoryData = new DirectoryData();
 		
 		directoryName = directoryName.replace("(", " ").replace(")", "")
@@ -52,7 +54,7 @@ public class FileOperations {
 		}
 		
 		if (directoryData.getYear() == null) {
-			logger.severe("NO DATE FOUND FOR: " + directoryName);
+			logger.warn("NO DATE FOUND FOR: " + directoryName);
 			if (directoryData.getResolution() != null) {
 				directoryData.setName(directoryName.substring(0, directoryName.toLowerCase().indexOf(directoryData.getResolution().toLowerCase()) - 1));
 			}
@@ -86,8 +88,7 @@ public class FileOperations {
         fChooser.setAcceptAllFileFilterUsed(false);
         fChooser.showSaveDialog(null);
 
-//        System.out.println(fChooser.getCurrentDirectory());
-        System.out.println("Selected File: " + fChooser.getSelectedFile().toString());
+		logger.info("Selected File: " + fChooser.getSelectedFile().toString());
   
         return fChooser.getSelectedFile().toString();
     }   
@@ -99,8 +100,7 @@ public class FileOperations {
         fChooser.setAcceptAllFileFilterUsed(false);
         fChooser.showSaveDialog(null);
 
-//        System.out.println(fChooser.getCurrentDirectory());
-        System.out.println("Selected Directory: " + fChooser.getSelectedFile().toString());
+		logger.info("Selected Directory: " + fChooser.getSelectedFile().toString());
   
         return fChooser.getSelectedFile().toString();
     }

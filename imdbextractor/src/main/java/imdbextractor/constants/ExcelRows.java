@@ -3,20 +3,20 @@ package imdbextractor.constants;
 public enum ExcelRows {
 
 	Title,
+	Cover,
 	YearReleased,
 	Rating,
 	Genre,
 	Description,
 	Imdb,
-	Cover,
-	Actors,
 	Director,
-	Writers,
-	Duration,
-	Format,
+	Actors,
 	Status,
 	SaveLocation,
+	Format,
 	Metascore,
 	Added,
+	Duration,
+	Writers,
 	SearchNameDate;
 }
