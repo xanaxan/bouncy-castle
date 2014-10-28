@@ -19,8 +19,6 @@ public class ImdbData {
 	
 	private DirectoryData directoryData;
 	
-	
-	
 	public DirectoryData getDirectoryData() {
 		return directoryData;
 	}

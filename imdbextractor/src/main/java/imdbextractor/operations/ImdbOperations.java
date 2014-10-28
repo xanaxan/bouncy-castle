@@ -150,18 +150,8 @@ public class ImdbOperations {
 	private static void processHeaderData(HtmlTableDataCell tdOverviewTop) {
 		HtmlHeading1 h1 = (HtmlHeading1) tdOverviewTop.getHtmlElementsByTagName("h1").get(0);
 
-		// @SuppressWarnings("unchecked")
-		// List<HtmlSpan> list = (List<HtmlSpan>)
-		// h1.getByXPath("//span[@class='title-extra']");
-//		if (list != null && !list.isEmpty()) {
-//			String orig = list.get(0).asText();
-//			orig = orig.substring(1, orig.length() - 18);
-//			imdbData.setMovieName(orig);
-//		}
-//		if (imdbData.getMovieName() == null) {
-			HtmlSpan span = (HtmlSpan) h1.getByXPath("//span[@itemprop='name']").get(0);
-			imdbData.setMovieName(span.asText());
-//		}
+		HtmlSpan span = (HtmlSpan) h1.getByXPath("//span[@itemprop='name']").get(0);
+		imdbData.setMovieName(span.asText());
 			
 		List<HtmlElement> lista = (List<HtmlElement>) h1.getHtmlElementsByTagName("a");
 		if (!lista.isEmpty()) {
@@ -190,6 +180,12 @@ public class ImdbOperations {
 	}
 
 	private static void processRatingsBox(HtmlTableDataCell tdOverviewTop) {
+		List<HtmlElement> noRatingElementList = tdOverviewTop.getElementsByAttribute("div", "class", "rating-ineligible");
+		if (!noRatingElementList.isEmpty() && noRatingElementList.get(0).asText().equals("Not yet released")) {
+			imdbData.setImdbRating("NYR");
+			return;
+		}
+
 		HtmlSpan span = (HtmlSpan) tdOverviewTop.getByXPath("//span[@itemprop='ratingValue']").get(0);
 		imdbData.setImdbRating(span.asText());
 		

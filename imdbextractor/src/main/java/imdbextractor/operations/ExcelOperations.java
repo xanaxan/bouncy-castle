@@ -69,7 +69,7 @@ public class ExcelOperations {
 				dataRow.createCell(ExcelRows.SearchNameDate.ordinal()).setCellValue(searchNameDate.replace("%20", " "));
 			}
 		}
-		String filename = "c:\\tmp\\workbook" + new Date().getTime();
+		String filename = ".\\workbook" + new Date().getTime();
 		if (directoryWithMovies != null) {
 			filename += "_" + FileOperations.fetchVolumeName(directoryWithMovies);
 			String dir = directoryWithMovies.getName();

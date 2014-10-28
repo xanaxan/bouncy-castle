@@ -11,7 +11,6 @@ public class DirectoryData {
 	
 	private File fileDirectory;
 	
-	
 	public String getSaveLocation() {
 		return saveLocation;
 	}
