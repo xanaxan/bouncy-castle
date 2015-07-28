@@ -9,8 +9,10 @@ import javax.swing.JProgressBar;
 
 public class ProgressPanel {
 
+	JFrame frame;
+
 	public JProgressBar getInstance(int total) {
-		JFrame frame = new JFrame("ProgressBarDemo");
+		frame = new JFrame("ProgressBarDemo");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
 		// Create and set up the content pane.
@@ -33,5 +35,9 @@ public class ProgressPanel {
 		frame.pack();
 		frame.setVisible(true);
 		return progressBar;
+	}
+
+	public void dispose() {
+		frame.dispose();
 	}
 }

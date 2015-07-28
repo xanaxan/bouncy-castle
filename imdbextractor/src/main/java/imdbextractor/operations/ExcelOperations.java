@@ -27,6 +27,8 @@ import org.apache.poi.ss.usermodel.WorkbookFactory;
 
 
 public class ExcelOperations {
+	
+	static SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd-HHmmss");
 
 	public static void makeExcel(List<ImdbData> imdbDataList, String saveLocation, String status, File directoryWithMovies) throws IOException {
 		Workbook wb = new HSSFWorkbook();
@@ -48,8 +50,8 @@ public class ExcelOperations {
 			dataRow.createCell(ExcelRows.Rating.ordinal(), Cell.CELL_TYPE_STRING).setCellValue(data.getImdbRating().replace(".", ","));
 			dataRow.createCell(ExcelRows.Genre.ordinal()).setCellValue(listToString(data.getGenres()));
 			dataRow.createCell(ExcelRows.Description.ordinal()).setCellValue(data.getShortDescription());
-			dataRow.createCell(ExcelRows.Imdb.ordinal()).setCellValue(data.getImdbUrl());
-			dataRow.createCell(ExcelRows.Cover.ordinal()).setCellValue(data.getPosterImgLink());
+			dataRow.createCell(ExcelRows.Imdb.ordinal()).setCellValue(data.getImdbUrl() + "?mode=desktop");
+			dataRow.createCell(ExcelRows.Cover.ordinal()).setCellValue(data.getPosterImgLink().substring(0, data.getPosterImgLink().indexOf(".", 25)));
 			dataRow.createCell(ExcelRows.Actors.ordinal()).setCellValue(listToString(data.getActors()));
 			dataRow.createCell(ExcelRows.Director.ordinal()).setCellValue(data.getDirector());
 			dataRow.createCell(ExcelRows.Writers.ordinal()).setCellValue(listToString(data.getWriters()));		
@@ -69,7 +71,7 @@ public class ExcelOperations {
 				dataRow.createCell(ExcelRows.SearchNameDate.ordinal()).setCellValue(searchNameDate.replace("%20", " "));
 			}
 		}
-		String filename = ".\\workbook" + new Date().getTime();
+		String filename = ".\\workbook" + sdf.format(new Date());
 		if (directoryWithMovies != null) {
 			filename += "_" + FileOperations.fetchVolumeName(directoryWithMovies);
 			String dir = directoryWithMovies.getName();
@@ -82,7 +84,7 @@ public class ExcelOperations {
 		fileOut.close();
 	}
 	
-	public static void makeExcelForFailed(List<DirectoryData> failed) throws IOException {
+	public static void makeExcelForFailed(List<DirectoryData> failed, String saveLocation, String status) throws IOException {
 		Workbook wb = new HSSFWorkbook();
 		Sheet sheet = wb.createSheet("failed sheet");
 		Row headerRow = sheet.createRow(0);
@@ -91,7 +93,8 @@ public class ExcelOperations {
 		headerRow.createCell(2).setCellValue("Format");
 		headerRow.createCell(3).setCellValue("LastModified");
 		headerRow.createCell(4).setCellValue("VolumeName");
-		headerRow.createCell(5).setCellValue("imdbLink");
+		headerRow.createCell(5).setCellValue("Status");
+		headerRow.createCell(6).setCellValue("imdbLink");
 		
 		Row row = null;
 		int i = 1;
@@ -101,14 +104,15 @@ public class ExcelOperations {
 			row.createCell(1).setCellValue(directoryData.getYear());
 			row.createCell(2).setCellValue(directoryData.getResolution());
 			row.createCell(3, Cell.CELL_TYPE_STRING).setCellValue(directoryData.getLastModified());
-			row.createCell(4).setCellValue(FileOperations.fetchVolumeName(directoryData.getFileDirectory()));
+			row.createCell(4).setCellValue(saveLocation);
+			row.createCell(5, Cell.CELL_TYPE_STRING).setCellValue(status);
 			i++;
 		}
 		Iterator<Row> it = sheet.rowIterator();
 		while (it.hasNext()) {
 			sheet.autoSizeColumn(it.next().getRowNum());
 		}
-		FileOutputStream fileOut = new FileOutputStream("c:\\tmp\\Failed.xls");
+		FileOutputStream fileOut = new FileOutputStream(".\\Failed_" + sdf.format(new Date()) + ".xls");
 		wb.write(fileOut);
 		fileOut.close();
 	}
@@ -133,6 +137,12 @@ public class ExcelOperations {
 			}
 			if (row.getCell(4) != null) {
 				data.setSaveLocation(row.getCell(4).getStringCellValue());
+			}
+			if (row.getCell(5) != null) {
+				data.setStatus(row.getCell(5).getStringCellValue());
+			}
+			if (row.getCell(6) == null) {
+				throw new InvalidFormatException("Missing imdb adress at " + row.getCell(0));
 			}
 			data.setName(row.getCell(5).getStringCellValue());
 			entryList.add(data);

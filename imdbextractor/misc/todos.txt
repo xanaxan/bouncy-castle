@@ -2,3 +2,4 @@
 - progress bar / x of y files ...DONE
 - if no fails dont make failed file ...DONE
 - movie might also be just a 'tv movie'
+- check title and warn if it's not the same (ignore ':', ',' etc.)

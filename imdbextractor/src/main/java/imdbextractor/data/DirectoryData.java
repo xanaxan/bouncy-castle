@@ -8,6 +8,7 @@ public class DirectoryData {
 	private String resolution;
 	private String lastModified;
 	private String saveLocation;
+	private String status;
 	
 	private File fileDirectory;
 	
@@ -46,6 +47,12 @@ public class DirectoryData {
 	}
 	public void setLastModified(String lastModified) {
 		this.lastModified = lastModified;
+	}
+	public String getStatus() {
+		return status;
+	}
+	public void setStatus(String status) {
+		this.status = status;
 	}
 
 }

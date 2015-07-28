@@ -205,7 +205,10 @@ public class ImdbOperations {
 		List<HtmlElement> list = (List<HtmlElement>) td.getHtmlElementsByTagName("img");
 		if (!list.isEmpty()) {
 			HtmlImage img = (HtmlImage) list.get(0);
-			imdbData.setPosterImgLink(img.getSrcAttribute());
+			String url = img.getSrcAttribute();
+			if (StringUtils.isNotBlank(url)) {
+				imdbData.setPosterImgLink(url.substring(0, url.indexOf(".", 25)));
+			}
 		}		
 	}
 }

@@ -1,0 +1,3 @@
+https://spreadsheets.google.com/feeds/list/1Pkzqfk-rB6WSJlTsNQGyF5oYn5lCqae3ZmdoiIP77ok/default/public/values?alt=json
+
+https://spreadsheets.google.com/feeds/list/1Pkzqfk-rB6WSJlTsNQGyF5oYn5lCqae3ZmdoiIP77ok/default/public/basic?alt=json

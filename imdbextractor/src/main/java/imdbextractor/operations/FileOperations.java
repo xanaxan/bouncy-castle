@@ -73,6 +73,7 @@ public class FileOperations {
 		list.add("cut");
 		list.add("extended");
 		list.add("extd");
+		list.add("limited");
 		
 		for (String listString : list) {
 			if (listString.toLowerCase().equals(wordToCheck.toLowerCase())) {

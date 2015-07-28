@@ -86,7 +86,7 @@ public class Worker_MovieDirectory {
 
 		ExcelOperations.makeExcel(imdbDataList, saveLocation, status, directoryWithMovies);
 		if (!failed.isEmpty()) {
-			ExcelOperations.makeExcelForFailed(failed);
+			ExcelOperations.makeExcelForFailed(failed, saveLocation, status);
 		}
 		for (DirectoryData dirData : failed) {
 			logger.warn("FAILED: " + dirData.getFileDirectory().getName());
@@ -94,6 +94,7 @@ public class Worker_MovieDirectory {
 		logger.info("Finished!");
 		Toolkit.getDefaultToolkit().beep();
 		Toolkit.getDefaultToolkit().beep();
+		panel.dispose();
 	}
 	
 	private static void incrementProgressBar(JProgressBar progressBar, int total) {
