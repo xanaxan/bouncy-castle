@@ -95,7 +95,9 @@ public class FileOperations {
     }   
 	
 	public static String directoryChooser() {
-		JFileChooser fChooser = new JFileChooser("C:");
+		//		Thread cur = Thread.currentThread().getContextClassLoader().getSystemClassLoader().;
+		//		URL url = FileOperations.class.getProtectionDomain().getCodeSource().getLocation();
+		JFileChooser fChooser = new JFileChooser("H:");
         fChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY); 
         fChooser.setDialogTitle("select folder");
         fChooser.setAcceptAllFileFilterUsed(false);

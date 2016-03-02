@@ -13,6 +13,8 @@ import org.apache.logging.log4j.Logger;
 
 import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
 import com.gargoylesoftware.htmlunit.WebClient;
+import com.gargoylesoftware.htmlunit.html.DomElement;
+import com.gargoylesoftware.htmlunit.html.DomNode;
 import com.gargoylesoftware.htmlunit.html.DomNodeList;
 import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
 import com.gargoylesoftware.htmlunit.html.HtmlDivision;
@@ -25,14 +27,14 @@ import com.gargoylesoftware.htmlunit.html.HtmlSpan;
 import com.gargoylesoftware.htmlunit.html.HtmlTableDataCell;
 
 public class ImdbOperations {
-	
+
 	static final Logger logger = LogManager.getLogger(ImdbOperations.class.getName());
 
 	static ImdbData imdbData = new ImdbData();
 
 	@SuppressWarnings("unchecked")
-	public static HtmlPage searchMovie(DirectoryData directoryData, WebClient webClient) throws FailingHttpStatusCodeException, 
-																					MalformedURLException, IOException {
+	public static HtmlPage searchMovie(DirectoryData directoryData, WebClient webClient)
+			throws FailingHttpStatusCodeException, MalformedURLException, IOException {
 		String url = "http://www.imdb.com/find?q=" + directoryData.getName() + "&s=tt&ttype=ft&exact=true";
 		HtmlPage searchPage = webClient.getPage(url);
 
@@ -54,11 +56,14 @@ public class ImdbOperations {
 			a = (HtmlAnchor) tdResult.getFirstElementChild();
 			String yearInSearchResult = a.getNextSibling().asText();
 			if (StringUtils.isNotBlank(yearInSearchResult) && yearInSearchResult.length() > 5) {
-				yearInSearchResult = yearInSearchResult.substring(yearInSearchResult.length() - 5, yearInSearchResult.length() - 1);
+				yearInSearchResult = yearInSearchResult.substring(yearInSearchResult.length() - 5,
+						yearInSearchResult.length() - 1);
 			}
-			//TODO WARNUNG wenn mehr als 1 film mit demselben jahr (und namen) oder
-//			 wenn kein jahr im directory/file angegeben
-			if (directoryData.getYear() != null && directoryData.getYear() != null && !directoryData.getYear().equals(yearInSearchResult)) {
+			// TODO WARNUNG wenn mehr als 1 film mit demselben jahr (und namen)
+			// oder
+			// wenn kein jahr im directory/file angegeben
+			if (directoryData.getYear() != null && directoryData.getYear() != null
+					&& !directoryData.getYear().equals(yearInSearchResult)) {
 				Integer year1 = Integer.valueOf(directoryData.getYear());
 				Integer year2 = 0;
 				try {
@@ -66,15 +71,14 @@ public class ImdbOperations {
 				} catch (NumberFormatException nfe) {
 					// e.g. (in development), no year
 				}
-				if ((year1 > year2 && year1 - year2 < 2) ||
-						(year2 > year1 && year2 - year1 < 2)) {
+				if ((year1 > year2 && year1 - year2 < 2) || (year2 > year1 && year2 - year1 < 2)) {
 					aToKeep = a;
 				}
 				if (i++ > 5) {
 					if (aToKeep != null) {
-						logger.warn(directoryData.getName() + ": Years don't match! Falling back to nearest possible Result. File/Directory Year: "
-								+ directoryData.getYear() +
-								" Imdb Search Result Year: " + yearInSearchResult);
+						logger.warn(directoryData.getName()
+								+ ": Years don't match! Falling back to nearest possible Result. File/Directory Year: "
+								+ directoryData.getYear() + " Imdb Search Result Year: " + yearInSearchResult);
 						return aToKeep.click();
 					} else {
 						return null;
@@ -90,29 +94,39 @@ public class ImdbOperations {
 			return null;
 		}
 	}
-	
+
 	public static ImdbData extractDataFromImdb(HtmlPage moviePage) throws Exception {
 		imdbData = new ImdbData();
-		
+
 		String url = moviePage.getUrl().toString();
 		url = url.substring(0, url.lastIndexOf("/") + 1);
 		imdbData.setImdbUrl(url);
-		
-		HtmlTableDataCell tdOverviewTop = moviePage.getHtmlElementById("overview-top");
-		processHeaderData(tdOverviewTop);
-		processInfoBar(tdOverviewTop);
-		processRatingsBox(tdOverviewTop);
-		processDescriptionAndPersons(tdOverviewTop, moviePage);
-		fetchPosterImgLink(moviePage);
-		
+
+		HtmlDivision divTitleBarWrapper = findFirstDivWithClass(moviePage, "title_bar_wrapper");
+		processTitleReleaseyear(divTitleBarWrapper);
+		processGenres(divTitleBarWrapper);
+		processRatingsBox(divTitleBarWrapper);
+		processDescription(moviePage);
+		HtmlDivision divPlotSummaryWrapper = findFirstDivWithClass(moviePage, "plot_summary_wrapper");
+		processPersons(divPlotSummaryWrapper);
+		fetchPosterImgLink(findFirstDivWithClass(moviePage, "poster"));
+		processDuration(moviePage);
+		processMetascore(divPlotSummaryWrapper);
 		return imdbData;
 	}
 
-	private static void processDescriptionAndPersons(HtmlTableDataCell tdOverviewTop, HtmlPage page) {
-		HtmlParagraph p = (HtmlParagraph) tdOverviewTop.getByXPath("//p[@itemprop='description']").get(0);
-		String description = p.asText();
+	private static void processDuration(DomNode parentNode) {
+		HtmlDivision divTitleDetails = parentNode.getFirstByXPath("//div[@id='titleDetails']");
+		HtmlElement element = divTitleDetails.getFirstByXPath("//time[@itemprop='duration']");
+		imdbData.setDuration(element.asText());
+	}
+
+	private static void processDescription(DomNode parentNode) {
+		String description = findFirstDivWithClass(parentNode, "summary_text").asText();
+
 		if (description.contains("See full summary")) {
-			Object o = page.getFirstByXPath("//div[@id='titleStoryLine']/div[1]/p[1]");
+
+			Object o = parentNode.getFirstByXPath("//div[@id='titleStoryLine']/div[1]/p[1]");
 			if (o != null) {
 				String plot = ((HtmlParagraph) o).asText();
 				if (plot.indexOf("Written by") != -1) {
@@ -125,90 +139,80 @@ public class ImdbOperations {
 			}
 		}
 		imdbData.setShortDescription(description);
+	}
 
-
-		HtmlSpan span = (HtmlSpan) tdOverviewTop.getFirstByXPath("//div[@itemprop='director']//span[@itemprop='name']");
+	private static void processPersons(DomNode parentNode) {
+		HtmlSpan span = (HtmlSpan) parentNode.getFirstByXPath("//span[@itemprop='director']//span[@itemprop='name']");
 		if (span != null) {
 			imdbData.setDirector(span.asText());
 		}
-		
-		for (Object o : tdOverviewTop.getByXPath("//div[@itemprop='creator']//span[@itemprop='name']")) {
+
+		for (Object o : parentNode.getByXPath(
+				"//span[@itemprop='creator' and @itemtype='http://schema.org/Person']//span[@itemprop='name']")) {
 			HtmlSpan spanWriter = (HtmlSpan) o;
-			String writer = spanWriter.asText() + " "
-					+ spanWriter.getParentNode().getNextSibling().asText();
-			if (writer.contains(",")) {
-				writer = writer.substring(0, writer.length() - 1);
-			}
-			imdbData.getWriters().add(writer.trim());
+			imdbData.getWriters().add(spanWriter.asText());
 		}
 
-		for (Object o : tdOverviewTop.getByXPath("//div[@itemprop='actors']//span[@itemprop='name']")) {
+		for (Object o : parentNode.getByXPath("//span[@itemprop='actors']//span[@itemprop='name']")) {
 			imdbData.getActors().add(((HtmlSpan) o).asText());
 		}
 	}
 
-	private static void processHeaderData(HtmlTableDataCell tdOverviewTop) {
-		HtmlHeading1 h1 = (HtmlHeading1) tdOverviewTop.getHtmlElementsByTagName("h1").get(0);
+	private static void processTitleReleaseyear(HtmlDivision parentDiv) {
+		HtmlHeading1 h1 = (HtmlHeading1) parentDiv.getHtmlElementsByTagName("h1").get(0);
+		imdbData.setMovieName(h1.asText());
 
-		HtmlSpan span = (HtmlSpan) h1.getByXPath("//span[@itemprop='name']").get(0);
-		imdbData.setMovieName(span.asText());
-			
 		List<HtmlElement> lista = (List<HtmlElement>) h1.getHtmlElementsByTagName("a");
 		if (!lista.isEmpty()) {
 			HtmlAnchor a = (HtmlAnchor) lista.get(0);
 			imdbData.setReleaseYear(a.asText());
+			imdbData.setMovieName(imdbData.getMovieName().substring(0,
+					imdbData.getMovieName().indexOf("(" + imdbData.getReleaseYear()) - 1));
 		} else {
 			HtmlSpan spanYear = (HtmlSpan) h1.getFirstByXPath("//span[@class='nobr']");
 			if (spanYear != null) {
 				String year = spanYear.asText();
 				imdbData.setReleaseYear(year.substring(1, 5));
 			}
+			logger.error("passiert das eigentlich irgendwann??!");
 		}
 	}
 
-	private static void processInfoBar(HtmlTableDataCell overviewTop) {
-		HtmlDivision divInfobar = (HtmlDivision) overviewTop.getByXPath("//div[@class='infobar']").get(0);
-
-		DomNodeList<HtmlElement> list = divInfobar.getElementsByTagName("time");
-		if (!list.isEmpty()) {
-			String duration = list.get(0).asText();
-			imdbData.setDuration(duration.substring(0, duration.length() - 4));
-		}
-		for (Object span : divInfobar.getByXPath("//span[@itemprop='genre']")) {
+	private static void processGenres(HtmlDivision parentDiv) {
+		for (Object span : parentDiv.getByXPath("//span[@itemprop='genre']")) {
 			imdbData.getGenres().add(((HtmlSpan) span).asText());
 		}
 	}
 
-	private static void processRatingsBox(HtmlTableDataCell tdOverviewTop) {
-		List<HtmlElement> noRatingElementList = tdOverviewTop.getElementsByAttribute("div", "class", "rating-ineligible");
-		if (!noRatingElementList.isEmpty() && noRatingElementList.get(0).asText().equals("Not yet released")) {
-			imdbData.setImdbRating("NYR");
-			return;
-		}
+	private static void processRatingsBox(DomNode parentNode) {
+		imdbData.setImdbRating(findFirstSpanWithItemProp(parentNode, "ratingValue").asText());
+	}
 
-		HtmlSpan span = (HtmlSpan) tdOverviewTop.getByXPath("//span[@itemprop='ratingValue']").get(0);
-		imdbData.setImdbRating(span.asText());
-		
-		Object o = tdOverviewTop.getFirstByXPath("//div[@class='star-box-details']/a[2]");
+	private static void processMetascore(DomNode parentNode) {
+		HtmlDivision div1 = findFirstDivWithClass(parentNode, "titleReviewBarItem");
+		if (div1 == null) return;
+		Object o = div1.getFirstByXPath("//div[contains(@class,'metacriticScore')]");
 		if (o != null) {
-			String s = ((HtmlAnchor) o).asText();
-			if (!s.contains("user") && s.contains("/100")) {
-				String metascore = ((HtmlAnchor)o).asText();
-				metascore = metascore.substring(0, metascore.length() - 4);
-				imdbData.setMetascore(metascore);
-			}
+			imdbData.setMetascore(((HtmlDivision) o).asText());
 		}
 	}
 
-	private static void fetchPosterImgLink(HtmlPage moviePage) {
-		HtmlTableDataCell td = moviePage.getHtmlElementById("img_primary");
-		List<HtmlElement> list = (List<HtmlElement>) td.getHtmlElementsByTagName("img");
+	private static void fetchPosterImgLink(HtmlDivision parentDiv) {
+		List<HtmlElement> list = (List<HtmlElement>) parentDiv.getHtmlElementsByTagName("img");
 		if (!list.isEmpty()) {
 			HtmlImage img = (HtmlImage) list.get(0);
 			String url = img.getSrcAttribute();
 			if (StringUtils.isNotBlank(url)) {
 				imdbData.setPosterImgLink(url.substring(0, url.indexOf(".", 25)));
 			}
-		}		
+		}
+	}
+
+	private static HtmlDivision findFirstDivWithClass(DomNode node, String className) {
+		return node.getFirstByXPath("//div[@class='" + className + "']");
+	}
+
+	private static HtmlSpan findFirstSpanWithItemProp(DomNode node, String itempropName) {
+		return node.getFirstByXPath("//span[@itemprop='" + itempropName + "']");
 	}
 }

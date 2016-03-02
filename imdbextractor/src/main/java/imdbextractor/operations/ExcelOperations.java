@@ -51,7 +51,7 @@ public class ExcelOperations {
 			dataRow.createCell(ExcelRows.Genre.ordinal()).setCellValue(listToString(data.getGenres()));
 			dataRow.createCell(ExcelRows.Description.ordinal()).setCellValue(data.getShortDescription());
 			dataRow.createCell(ExcelRows.Imdb.ordinal()).setCellValue(data.getImdbUrl() + "?mode=desktop");
-			dataRow.createCell(ExcelRows.Cover.ordinal()).setCellValue(data.getPosterImgLink().substring(0, data.getPosterImgLink().indexOf(".", 25)));
+			dataRow.createCell(ExcelRows.Cover.ordinal()).setCellValue(data.getPosterImgLink());
 			dataRow.createCell(ExcelRows.Actors.ordinal()).setCellValue(listToString(data.getActors()));
 			dataRow.createCell(ExcelRows.Director.ordinal()).setCellValue(data.getDirector());
 			dataRow.createCell(ExcelRows.Writers.ordinal()).setCellValue(listToString(data.getWriters()));		
