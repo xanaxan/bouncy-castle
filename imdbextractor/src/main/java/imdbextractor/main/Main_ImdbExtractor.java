@@ -1,12 +1,14 @@
 package imdbextractor.main;
 
-import java.util.logging.Logger;
-
 import javax.swing.JOptionPane;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 public class Main_ImdbExtractor {
-	static java.util.logging.Logger logger = Logger.getLogger(Main_ImdbExtractor.class.getName());
+
+	static final Logger logger = LogManager.getLogger(Main_ImdbExtractor.class);
 
 	public static void main(String[] args) {
 		String OPTION_MOVIEDIRECTORY = "Movie Directory";
@@ -26,6 +28,7 @@ public class Main_ImdbExtractor {
 			JOptionPane.showMessageDialog(null, "Finished...");
 		} catch (Exception e) {
 			JOptionPane.showMessageDialog(null, e.getStackTrace(), "Error", JOptionPane.ERROR_MESSAGE);
+			logger.error("", e);
 		}
 
 	}

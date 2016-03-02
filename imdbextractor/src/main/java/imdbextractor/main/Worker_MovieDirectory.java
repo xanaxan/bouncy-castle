@@ -11,8 +11,11 @@ import java.awt.Toolkit;
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.swing.JOptionPane;
 import javax.swing.JProgressBar;
@@ -43,19 +46,21 @@ public class Worker_MovieDirectory {
 		webClient.setCssErrorHandler(new SilentCssErrorHandler());
 		webClient.getOptions().setJavaScriptEnabled(false);
 		List<DirectoryData> failed = new ArrayList<DirectoryData>();
-		File listFiles[] = directoryWithMovies.listFiles();
+		File[] listFiles = directoryWithMovies.listFiles();
+		Collection<File> filteredFiles = Arrays.asList(listFiles).stream()
+				.filter(f -> !f.isFile() ||
+						(f.getName().endsWith(".mkv") ||
+								f.getName().endsWith(".avi") ||
+								f.getName().endsWith(".mp4") ||
+						f.getName().endsWith(".divx")))
+				.collect(Collectors.toList());
 		ProgressPanel panel = new ProgressPanel();
-		JProgressBar progressBar = panel.getInstance(listFiles.length);
+		JProgressBar progressBar = panel.getInstance(filteredFiles.size());
 
-		for (File f : listFiles) {
+		for (File f : filteredFiles) {
 
 			String dirFileName = f.getName();
 			if (f.isFile()) {
-				// TODO filter out wrong files before (for total in progressbar
-				if (!(f.getName().endsWith(".mkv") || f.getName().endsWith(".avi") || f.getName().endsWith(".mp4") || f.getName().endsWith(".divx"))) {
-					incrementProgressBar(progressBar, listFiles.length);
-					continue;
-				}
 				dirFileName = f.getName().substring(0, f.getName().lastIndexOf("."));
 			}
 			DirectoryData directoryData = FileOperations.processDirectoryName(dirFileName);
@@ -65,6 +70,7 @@ public class Worker_MovieDirectory {
 			HtmlPage page = ImdbOperations.searchMovie(directoryData, webClient);
 			if (page == null) {
 				failed.add(directoryData);
+				logger.error("page == null");
 				incrementProgressBar(progressBar, listFiles.length);
 				continue;
 			}
@@ -73,7 +79,7 @@ public class Worker_MovieDirectory {
 				data = ImdbOperations.extractDataFromImdb(page);
 			} catch (Exception e) {
 				failed.add(directoryData);
-				e.printStackTrace();
+				logger.error("extractDataFromImdb Exception", e);
 				incrementProgressBar(progressBar, listFiles.length);
 				continue;
 			}
