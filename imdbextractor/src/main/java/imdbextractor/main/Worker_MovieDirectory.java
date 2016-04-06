@@ -2,35 +2,28 @@ package imdbextractor.main;
 
 import java.awt.Toolkit;
 import java.io.File;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import javax.swing.JOptionPane;
-import javax.swing.JProgressBar;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.gargoylesoftware.htmlunit.SilentCssErrorHandler;
 import com.gargoylesoftware.htmlunit.WebClient;
-import com.gargoylesoftware.htmlunit.html.HtmlPage;
 
 import imdbextractor.data.DirectoryData;
 import imdbextractor.data.ImdbData;
 import imdbextractor.operations.ExcelOperations;
 import imdbextractor.operations.FileOperations;
-import imdbextractor.operations._ImdbOperations;
-import imdbextractor.util.ProgressPanel;
 
 
 public class Worker_MovieDirectory {

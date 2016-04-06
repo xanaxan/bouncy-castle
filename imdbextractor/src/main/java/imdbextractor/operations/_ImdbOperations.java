@@ -1,8 +1,5 @@
 package imdbextractor.operations;
 
-import imdbextractor.data.DirectoryData;
-import imdbextractor.data.ImdbData;
-
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.List;
@@ -13,9 +10,7 @@ import org.apache.logging.log4j.Logger;
 
 import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
 import com.gargoylesoftware.htmlunit.WebClient;
-import com.gargoylesoftware.htmlunit.html.DomElement;
 import com.gargoylesoftware.htmlunit.html.DomNode;
-import com.gargoylesoftware.htmlunit.html.DomNodeList;
 import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
 import com.gargoylesoftware.htmlunit.html.HtmlDivision;
 import com.gargoylesoftware.htmlunit.html.HtmlElement;
@@ -25,6 +20,9 @@ import com.gargoylesoftware.htmlunit.html.HtmlPage;
 import com.gargoylesoftware.htmlunit.html.HtmlParagraph;
 import com.gargoylesoftware.htmlunit.html.HtmlSpan;
 import com.gargoylesoftware.htmlunit.html.HtmlTableDataCell;
+
+import imdbextractor.data.DirectoryData;
+import imdbextractor.data.ImdbData;
 
 public class _ImdbOperations {
 
