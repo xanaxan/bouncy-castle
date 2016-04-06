@@ -4,6 +4,7 @@ import imdbextractor.data.DirectoryData;
 import imdbextractor.data.ImdbData;
 import imdbextractor.operations.ExcelOperations;
 import imdbextractor.operations.FileOperations;
+import imdbextractor.operations._ImdbOperations;
 import imdbextractor.operations.ImdbOperations;
 
 import java.io.BufferedReader;
@@ -18,7 +19,6 @@ import org.apache.logging.log4j.Logger;
 import com.gargoylesoftware.htmlunit.SilentCssErrorHandler;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
-
 
 public class Worker_UrlList {
 	
@@ -36,7 +36,9 @@ public class Worker_UrlList {
 			
 			for (DirectoryData dirData : failedList) {
 				HtmlPage page = webClient.getPage(dirData.getName());
-				ImdbData imdbData = ImdbOperations.extractDataFromImdb(page);
+				ImdbOperations imdbOperations = new ImdbOperations();
+				ImdbData imdbData = new ImdbData();
+				imdbData = imdbOperations.extractDataFromImdb(page, imdbData);
 				if (imdbData == null) {
 					logger.warn("FAILURE: " + dirData.getName());
 					continue;
@@ -54,7 +56,7 @@ public class Worker_UrlList {
 			while ((line = br.readLine()) != null) {
 				System.out.println(line);
 				HtmlPage page = webClient.getPage(line);
-				ImdbData imdbData = ImdbOperations.extractDataFromImdb(page);
+				ImdbData imdbData = _ImdbOperations.extractDataFromImdb(page);
 				if (imdbData == null) {
 					System.out.println("FAILURE: " + line);
 					continue;

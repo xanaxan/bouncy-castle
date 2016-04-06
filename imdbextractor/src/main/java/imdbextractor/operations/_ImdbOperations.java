@@ -26,17 +26,15 @@ import com.gargoylesoftware.htmlunit.html.HtmlParagraph;
 import com.gargoylesoftware.htmlunit.html.HtmlSpan;
 import com.gargoylesoftware.htmlunit.html.HtmlTableDataCell;
 
-public class ImdbOperations {
+public class _ImdbOperations {
 
-	static final Logger logger = LogManager.getLogger(ImdbOperations.class.getName());
+	static final Logger logger = LogManager.getLogger(_ImdbOperations.class.getName());
 
-//	static ImdbData imdbData = new ImdbData();
-	ImdbData imdbData;
+	static ImdbData imdbData = new ImdbData();
 
 	@SuppressWarnings("unchecked")
 	public static HtmlPage searchMovie(DirectoryData directoryData, WebClient webClient)
 			throws FailingHttpStatusCodeException, MalformedURLException, IOException {
-		
 		String url = "http://www.imdb.com/find?q=" + directoryData.getName() + "&s=tt&ttype=ft&exact=true";
 		HtmlPage searchPage = webClient.getPage(url);
 
@@ -97,15 +95,14 @@ public class ImdbOperations {
 		}
 	}
 
-	public ImdbData extractDataFromImdb(HtmlPage moviePage, ImdbData inputImdbData) throws Exception {
-		imdbData = inputImdbData;
+	public static ImdbData extractDataFromImdb(HtmlPage moviePage) throws Exception {
+		imdbData = new ImdbData();
 
 		String url = moviePage.getUrl().toString();
 		url = url.substring(0, url.lastIndexOf("/") + 1);
 		imdbData.setImdbUrl(url);
 
 		HtmlDivision divTitleBarWrapper = findFirstDivWithClass(moviePage, "title_bar_wrapper");
-		if (divTitleBarWrapper == null) logger.error("do sixtas!");
 		processTitleReleaseyear(divTitleBarWrapper);
 		processGenres(divTitleBarWrapper);
 		processRatingsBox(divTitleBarWrapper);
@@ -118,13 +115,13 @@ public class ImdbOperations {
 		return imdbData;
 	}
 
-	private void processDuration(DomNode parentNode) {
+	private static void processDuration(DomNode parentNode) {
 		HtmlDivision divTitleDetails = parentNode.getFirstByXPath("//div[@id='titleDetails']");
 		HtmlElement element = divTitleDetails.getFirstByXPath("//time[@itemprop='duration']");
 		imdbData.setDuration(element.asText());
 	}
 
-	private void processDescription(DomNode parentNode) {
+	private static void processDescription(DomNode parentNode) {
 		String description = findFirstDivWithClass(parentNode, "summary_text").asText();
 
 		if (description.contains("See full summary")) {
@@ -144,7 +141,7 @@ public class ImdbOperations {
 		imdbData.setShortDescription(description);
 	}
 
-	private void processPersons(DomNode parentNode) {
+	private static void processPersons(DomNode parentNode) {
 		HtmlSpan span = (HtmlSpan) parentNode.getFirstByXPath("//span[@itemprop='director']//span[@itemprop='name']");
 		if (span != null) {
 			imdbData.setDirector(span.asText());
@@ -161,7 +158,7 @@ public class ImdbOperations {
 		}
 	}
 
-	private void processTitleReleaseyear(HtmlDivision parentDiv) {
+	private static void processTitleReleaseyear(HtmlDivision parentDiv) {
 		HtmlHeading1 h1 = (HtmlHeading1) parentDiv.getHtmlElementsByTagName("h1").get(0);
 		imdbData.setMovieName(h1.asText());
 
@@ -181,17 +178,17 @@ public class ImdbOperations {
 		}
 	}
 
-	private void processGenres(HtmlDivision parentDiv) {
+	private static void processGenres(HtmlDivision parentDiv) {
 		for (Object span : parentDiv.getByXPath("//span[@itemprop='genre']")) {
 			imdbData.getGenres().add(((HtmlSpan) span).asText());
 		}
 	}
 
-	private void processRatingsBox(DomNode parentNode) {
+	private static void processRatingsBox(DomNode parentNode) {
 		imdbData.setImdbRating(findFirstSpanWithItemProp(parentNode, "ratingValue").asText());
 	}
 
-	private void processMetascore(DomNode parentNode) {
+	private static void processMetascore(DomNode parentNode) {
 		HtmlDivision div1 = findFirstDivWithClass(parentNode, "titleReviewBarItem");
 		if (div1 == null) return;
 		Object o = div1.getFirstByXPath("//div[contains(@class,'metacriticScore')]");
@@ -200,7 +197,7 @@ public class ImdbOperations {
 		}
 	}
 
-	private void fetchPosterImgLink(HtmlDivision parentDiv) {
+	private static void fetchPosterImgLink(HtmlDivision parentDiv) {
 		List<HtmlElement> list = (List<HtmlElement>) parentDiv.getHtmlElementsByTagName("img");
 		if (!list.isEmpty()) {
 			HtmlImage img = (HtmlImage) list.get(0);
@@ -211,11 +208,11 @@ public class ImdbOperations {
 		}
 	}
 
-	private HtmlDivision findFirstDivWithClass(DomNode node, String className) {
+	private static HtmlDivision findFirstDivWithClass(DomNode node, String className) {
 		return node.getFirstByXPath("//div[@class='" + className + "']");
 	}
 
-	private HtmlSpan findFirstSpanWithItemProp(DomNode node, String itempropName) {
+	private static HtmlSpan findFirstSpanWithItemProp(DomNode node, String itempropName) {
 		return node.getFirstByXPath("//span[@itemprop='" + itempropName + "']");
 	}
 }
