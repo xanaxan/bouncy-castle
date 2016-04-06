@@ -119,7 +119,22 @@ public class ImdbOperations {
 	private void processDuration(DomNode parentNode) {
 		HtmlDivision divTitleDetails = parentNode.getFirstByXPath("//div[@id='titleDetails']");
 		HtmlElement element = divTitleDetails.getFirstByXPath("//time[@itemprop='duration']");
-		imdbData.setDuration(element.asText());
+		String imdbDuration = element.asText();
+		
+		if (!imdbDuration.contains("min")) {
+			imdbData.setDuration(imdbDuration);
+			return;
+		}
+		
+		int idxH = imdbDuration.indexOf("h"), h = 0;
+		if (idxH != -1) {
+			h = Integer.valueOf(imdbDuration.substring(0, idxH));
+		} else {
+			idxH = -2;
+		}
+		int m = Integer.valueOf(imdbDuration.substring(idxH + 2, imdbDuration.indexOf("min")));
+		int duration = h * 60 + m;	
+		imdbData.setDuration(String.valueOf(duration));
 	}
 
 	private void processDescription(DomNode parentNode) {
