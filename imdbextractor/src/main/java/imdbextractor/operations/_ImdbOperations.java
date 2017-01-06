@@ -201,7 +201,7 @@ public class _ImdbOperations {
 			HtmlImage img = (HtmlImage) list.get(0);
 			String url = img.getSrcAttribute();
 			if (StringUtils.isNotBlank(url)) {
-				imdbData.setPosterImgLink(url.substring(0, url.indexOf(".", 25)));
+				imdbData.setPosterImgLink(url.substring(0, url.indexOf(".", url.indexOf(".com") + 4)) + ".jpg");
 			}
 		}
 	}

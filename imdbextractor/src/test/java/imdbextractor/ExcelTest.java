@@ -1,7 +1,5 @@
 package imdbextractor;
 
-import imdbextractor.operations.FileOperations;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -16,6 +14,8 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.junit.Test;
+
+import imdbextractor.operations.FileOperations;
 
 public class ExcelTest {
 
@@ -41,12 +41,12 @@ public class ExcelTest {
 
 	@Test
 	public void correctCoverUrlsInExcel() throws InvalidFormatException, IOException {
-		InputStream inp = new FileInputStream(new File("D:\\tmp\\Movie Collection 20150629"));
+		InputStream inp = new FileInputStream(new File("D:\\tmp\\Movie Collection 20150629.xlsx"));
 		Workbook wb = WorkbookFactory.create(inp);
 		Sheet sheet = wb.getSheetAt(0);
 		Iterator<Row> it = sheet.rowIterator();
 
-		it.next();
+//		it.next();
 		while (it.hasNext()) {
 			Row row = it.next();
 			Cell cell = row.getCell(1);
@@ -55,7 +55,7 @@ public class ExcelTest {
 
 //				if (url.indexOf(",") != -1) {
 
-				String result = url.substring(0, url.indexOf(".", 25));
+				String result = url.substring(0, url.indexOf(".", url.indexOf(".com") + 4)) + ".jpg";
 				cell.setCellValue(result);
 				//				}
 			}
@@ -68,10 +68,10 @@ public class ExcelTest {
 
 	@Test
 	public void stringy() {
-		String url = "http://ia.media-imdb.com/images/M/MV5BMjE3MzA4MDk4NV5BMl5BanBnXkFtZTcwNjY0NTM0MQ@@._V1_SY317_CR6,0,214,317_AL_.jpg";
+		String url = "https://images-na.ssl-images-amazon.com/images/M/MV5BMTY3MjU0NDA0OF5BMl5BanBnXkFtZTgwNTc0MTU3OTE@._V1_UY268_CR3,0,182,268_AL_.jpg";
 		String result = "wu";
 		if (url.indexOf(",") != -1) {
-			result = url.substring(0, url.indexOf(".", 25));
+			result = url.substring(0, url.indexOf(".", url.indexOf(".com") + 4)) + ".jpg";
 			System.out.println(result);
 		}
 	}
